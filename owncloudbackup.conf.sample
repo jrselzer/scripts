@@ -1,0 +1,27 @@
+# Sample file, adapt it to your own needs
+# Source system shell user name
+RUSER=wordpress
+# Source system host name
+RHOST=owncoud.source.host
+# Target domain
+DOMAIN=ocbackup.target.host
+# Source system database user name
+RDBUSER=sourceocus
+# Source system database name
+RDBNAME=sourceocdb
+# Target WWW directory
+WWWDIR=/usr/www/users/source
+# Source system Owncloud directory
+ROCDIR=htdocs/owncloud
+# Target Owncloud directory
+OCDIR=${WWWDIR}/owncloud
+# Target Owncloud configuration file
+OCCONF=${OCDIR}/config/config.php
+# Target Owncloud data directory
+OCDATA=${OCDIR}/data
+# Target database name
+DBNAME=targetdb
+# Target database user name
+DBUSER=targetdbus
+# Target database password
+DBPASS=targetdbpw
