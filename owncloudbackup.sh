@@ -1,7 +1,7 @@
 #!/bin/bash 
 # Create a running Owncloud clone 
 AUTHOR=jrselzer@github.com
-VERSION="0.1 20211016"
+VERSION="0.2 20211017"
 MYNAME=`basename $0 | cut -d. -f1`
 MYCONF=${MYNAME}.conf
 if [ -f ${MYCONF} ]
@@ -46,3 +46,8 @@ sed -i "s/\('datadirectory' => '\).*/\1${OCDATA}',/; \
         s/\('dbpassword' => '\).*'/\1${DBPASS}'/; \
         s/\(0 => '\).*'/\1${DOMAIN}'/" \
         ${OCCONF}
+
+echo "Re-scanning data directory to make non-indexed files visible"
+
+cd ${OCDIR}
+php occ files:scan --all
