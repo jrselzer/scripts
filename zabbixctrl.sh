@@ -19,7 +19,13 @@ start() {
 }
 
 stop() {
-	kill ${AGENTPID}
+	if [ -f ${PIDFILE} ]
+	then
+		kill ${AGENTPID}
+	else
+		echo "${PIDFILE} not found, please kill process manually."
+		exit 103
+	fi
 }
 
 case $1 in
