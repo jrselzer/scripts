@@ -1,11 +1,21 @@
 #!/bin/bash
 
-BASEDIR=/var/www/vhosts/drupal/zabbix
+BASEDIR=/var/www/vhosts/wordpress/zabbix
 PIDFILE=${BASEDIR}/zabbix_agentd.pid
-AGENTPID=`cat ${PIDFILE}`
+AGENTPID=`[ -f ${PIDFILE} ] && cat ${PIDFILE}`
+HOME=${BASEDIR}
+OPTIONS="-f"
 
 start() {
-	[ ! -f ${PIDFILE} ] && ${BASEDIR}/sbin/zabbix_agentd -fc ${BASEDIR}/conf/zabbix_agentd.conf
+	if [ -f ${PIDFILE} ]
+	then
+		echo "${PIDFILE} already exists, not starting."
+		exit 102
+	else
+		${BASEDIR}/sbin/zabbix_agentd \
+			${OPTIONS} \
+			-c ${BASEDIR}/conf/zabbix_agentd.conf
+	fi
 }
 
 stop() {
