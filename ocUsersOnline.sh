@@ -5,7 +5,7 @@ SINCE=`date -d "${INTERVAL}" +%s`
 OCDIR=/var/www/vhosts/wordpress/htdocs/owncloud
 
 cd ${OCDIR}
-php occ user:list -v | \
+/usr/local/bin/php occ user:list -v | \
 	grep lastLogin | \
 	cut -d: -f2 | \
 	while read LASTLOGIN
