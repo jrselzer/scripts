@@ -1,0 +1,30 @@
+#!/bin/bash
+VERSION="0.2.3 20220103"
+AUTHOR=jrselzer@github.com
+MYNAME=`basename $0 | cut -d. -f1`
+MYHOST=`hostname -s`
+
+rm log4j-detector-2021.12.1[0-9].jar log4j-detector-2021.12.2[0-8].jar
+mv ${MYNAME}.log ${MYNAME}_`date "+%Y%m%d%H%M%S"`.log
+find . -type f \
+        -maxdepth 1 \
+        -name "${MYNAME}_??????????????.log" \
+        -mtime +7 \
+        -exec rm {} \;
+
+for JRE in `locate --regex /bin/java$`
+do
+        ${JRE} -version 2> /dev/null
+
+        if [ $? -eq 0 ]
+        then
+                ${JRE} -jar DETECTORSCRIPT \
+                         --exclude='["/dev", "/proc", "/srv", "/lost+found", "/run"]' / | \
+                        grep -v Problem | \
+                        grep ^/ | \
+                        sed -e 's/^\(.*\)/'${MYHOST}';\1/' > ${MYNAME}.tmp
+                break
+        fi
+done
+
+mv ${MYNAME}.tmp ${MYNAME}.log
