@@ -8,9 +8,7 @@ MYNAME=`basename $0 | cut -d. -f1`
 . ${MYNAME}.ini
 
 TIMESTAMP=`date +%Y%m%d%H%M%S`
-#DOMAIN=umfrage.dgb-bildungswerk.de
 BACKUP=${DOMAIN}_${TIMESTAMP}
-#WORKDIR=/var/www/vhosts/wordpress/htdocs
 CONFIG=${WORKDIR}/${DOMAIN}/application/config/config.php
 DBUSER=`grep "[^#].*'username' =>" ${CONFIG} | cut -d"'" -f4`
 DBNAME=`grep "[^#].*'connectionString' =>" ${CONFIG} | sed -e 's/.*dbname=\([^;]*\);.*/\1/'`
