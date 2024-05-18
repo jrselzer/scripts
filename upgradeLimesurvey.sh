@@ -3,7 +3,6 @@ set -x
 trap read debug
 # Update existing Limesurvey installation
 VERSION="0.3 20240518"
-AUTHOR=js@crypto.koeln
 TESTEDWITH=https://download.limesurvey.org/latest-master/limesurvey6.2.9+230925.zip
 MYNAME=`basename $0 | cut -d. -f1`
 # read WORKDIR and DOMAIN from configuration file
