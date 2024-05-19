@@ -2,7 +2,7 @@
 set -x
 trap read debug
 # Update existing Limesurvey installation
-VERSION="0.5 20240519"
+VERSION="0.6 20240519"
 TESTEDWITH=https://download.limesurvey.org/latest-master/limesurvey6.2.9+230925.zip
 MYNAME=`basename $0 | cut -d. -f1`
 LOGFILE=${MYNAME}.log
@@ -71,6 +71,22 @@ then
 		exit 212
 	fi
 fi
+
+# Check whether the latest version is already installed
+INSTALLEDVERSION="`grep "'versionnumber'" ${WORKDIR}/${DOMAIN}/application/config/version.php | cut -d"'" -f4`"
+
+if [[ "${UPDATEFILE}" =~ "${INSTALLEDVERSION}" ]]
+then
+	echo "Warning: The installed version ${INSTALLEDVERSION} is alteady the latest one. Do you want to proceed (y/n)?"
+	read REPLY
+
+	if [ "${REPLY}" != "y" ]
+	then
+		exit 213
+	fi
+fi
+
+# Pre-installation checks finished. From here on data will be modified and maybe destroyed
 
 cd ${WORKDIR} 
 
