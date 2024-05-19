@@ -2,14 +2,16 @@
 set -x
 trap read debug
 # Update existing Limesurvey installation
-VERSION="0.4 20240519"
+VERSION="0.5 20240519"
 TESTEDWITH=https://download.limesurvey.org/latest-master/limesurvey6.2.9+230925.zip
 MYNAME=`basename $0 | cut -d. -f1`
+LOGFILE=${MYNAME}.log
 # read WORKDIR and DOMAIN from configuration file
 . ${MYNAME}.ini
 
 TIMESTAMP=`date +%Y%m%d%H%M%S`
 BACKUP=${DOMAIN}_${TIMESTAMP}
+DBDUMP=${BACKUP}.dmp
 CONFIG=${WORKDIR}/${DOMAIN}/application/config/config.php
 DBTYPE=`grep "[^#][[:space:]]*'connectionString' => " ${CONFIG} | cut -d"'" -f4|cut -d":" -f1`
 
@@ -46,13 +48,28 @@ then
 	exit 210
 fi
 
-UPDATEURL=${1:-`curl https://community.limesurvey.org/downloads/ | grep "latest-master"|sed -e "s/.*href=.\(.*\)'.*/\1/"`}
+# Try to detect latest version URL by looking at the website
+UPDATEURL=${1:-`curl https://community.limesurvey.org/downloads/ | grep "latest-master" | sed -e "s/.*href=.\(.*\)'.*/\1/"`}
 UPDATEFILE=${UPDATEURL##*/}
 
 if [ -z "${UPDATEURL}" ]
 then
 	echo "Please give URL for Limesurvey as first command line argument."
 	exit 200
+fi
+
+# Check whether logs claim there has already been a successful install
+if [ -f "${LOGFILE}" ] && \
+	INSTALLDATE="`grep \"${UPDATEFILE} successful\" ${LOGFILE} | cut -d' ' -f1`" && \
+	[ -n "${INSTALLDATE}" ]
+then
+	echo "Warning: ${UPDATEFILE} has already been installed on ${INSTALLDATE}. Do you want to proceed (y/n)?"
+	read REPLY
+
+	if [ "${REPLY}" != "y" ]
+	then
+		exit 212
+	fi
 fi
 
 cd ${WORKDIR} 
@@ -73,11 +90,11 @@ then
 fi
 
 # Create database backup
-mysqldump -u ${DBUSER} ${DBNAME} > ~/${BACKUP}.dmp
+mysqldump -u ${DBUSER} ${DBNAME} > ~/${DBDUMP}
 
-if [ $? -ne 0 ] || [ ! -f ~/${BACKUP}.dmp ]
+if [ $? -ne 0 ] || [ ! -f ~/${DBDUMP} ]
 then
-	echo "Something went wrong when trying to create DB dump ${BACKUP}.dmp."
+	echo "Something went wrong when trying to create DB dump ${DBDUMP}."
 	exit 205
 fi
 
@@ -116,7 +133,7 @@ cp -rav _${BACKUP}/upload/* ${DOMAIN}/upload
 # Check whether copying the upload directory actually worked
 diff -r _${BACKUP}/upload ${DOMAIN}/upload
 
-if [ $? -ne 0 ]]
+if [ $? -ne 0 ]
 then
 	echo "Someting went wrong when trying to copy the update directory."
 	exit 211
@@ -127,5 +144,7 @@ read REPLY
 
 if [ "${REPLY}" = "y" ]
 then
-	tar cfvj ../${MYNAME}_${TIMESTAMP}.tar.bz2 _${BACKUP} ~/${BACKUP}.dmp --remove-files
+	tar cfvj ~/${MYNAME}_${TIMESTAMP}.tar.bz2 _${BACKUP} ~/${DBDUMP} --remove-files
 fi
+
+echo "${TIMESTAMP} installation of ${UPDATEFILE} successful." >> ${MYNAME}.log
