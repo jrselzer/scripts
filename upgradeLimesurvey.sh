@@ -2,7 +2,8 @@
 set -x
 trap read debug
 # Update existing Limesurvey installation
-VERSION="0.3 20240518"
+VERSION="0.4 20240519"
+AUTHOR=js@crypto.koeln
 TESTEDWITH=https://download.limesurvey.org/latest-master/limesurvey6.2.9+230925.zip
 MYNAME=`basename $0 | cut -d. -f1`
 # read WORKDIR and DOMAIN from configuration file
@@ -46,7 +47,7 @@ then
 	exit 210
 fi
 
-UPDATEURL=$1
+UPDATEURL=${1:-`curl https://community.limesurvey.org/downloads/ | grep "latest-master"|sed -e "s/.*href=.\(.*\)'.*/\1/"`}
 UPDATEFILE=${UPDATEURL##*/}
 
 if [ -z "${UPDATEURL}" ]
