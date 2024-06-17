@@ -1,11 +1,35 @@
 #!/bin/bash
-set -x
-trap read debug
+#set -x
+#trap read debug
 # Update existing Limesurvey installation
-VERSION="0.6 20240519"
+VERSION="0.6.2 20240617"
+AUTHOR=js@crypto.koeln
 TESTEDWITH=https://download.limesurvey.org/latest-master/limesurvey6.2.9+230925.zip
 MYNAME=`basename $0 | cut -d. -f1`
+
+# Draw a box around a text given as 1st argument with characters given as 2nd
+drawBox() {
+	block=${2:-"#"}
+
+	for i in `seq 1 $((${#1} + 4))`
+	do
+		border="${border}${block}"
+	done
+
+	cat <<- EOF
+		${border}
+		${block} $1 ${block}
+		${border}
+	EOF
+}
+
 LOGFILE=${MYNAME}.log
+
+# Write log entry with timestamp and hostname
+writeLog() {
+        echo "`date +%Y-%m-%d_%H:%M:%S_%Z` -  `hostname` - $1" | tee -a ${LOGFILE}
+}
+
 # read WORKDIR and DOMAIN from configuration file
 . ${MYNAME}.ini
 
@@ -14,6 +38,9 @@ BACKUP=${DOMAIN}_${TIMESTAMP}
 DBDUMP=${BACKUP}.dmp
 CONFIG=${WORKDIR}/${DOMAIN}/application/config/config.php
 DBTYPE=`grep "[^#][[:space:]]*'connectionString' => " ${CONFIG} | cut -d"'" -f4|cut -d":" -f1`
+
+drawbox "Preparations" "-"
+writeLog "Detecting database parameters from ${CONFIG}" "-"
 
 if [ "${DBTYPE}" != "mysql" ]
 then
@@ -58,6 +85,8 @@ then
 	exit 200
 fi
 
+writeLog "Update detected as ${UPDATEFILE}"
+
 # Check whether logs claim there has already been a successful install
 if [ -f "${LOGFILE}" ] && \
 	INSTALLDATE="`grep \"${UPDATEFILE} successful\" ${LOGFILE} | cut -d' ' -f1`" && \
@@ -88,6 +117,8 @@ fi
 
 # Pre-installation checks finished. From here on data will be modified and maybe destroyed
 
+drawBox "Performing update" "-"
+
 cd ${WORKDIR} 
 
 if [ $? -ne 0 ] || [ "`pwd`" != "${WORKDIR}" ]
@@ -113,6 +144,8 @@ then
 	echo "Something went wrong when trying to create DB dump ${DBDUMP}."
 	exit 205
 fi
+
+writeLog "Database ${DBUSER}@${DBNAME} exported."
 
 # Download update
 wget ${UPDATEURL}
@@ -155,6 +188,10 @@ then
 	exit 211
 fi
 
+writeLog "All data transferred to new installation."
+
+drawBox "Cleanup"
+
 echo "Have you tested the new version and want to archive the backed up data (y/n)?"
 read REPLY
 
@@ -163,4 +200,4 @@ then
 	tar cfvj ~/${MYNAME}_${TIMESTAMP}.tar.bz2 _${BACKUP} ~/${DBDUMP} --remove-files
 fi
 
-echo "${TIMESTAMP} installation of ${UPDATEFILE} successful." >> ${MYNAME}.log
+writelog "Installation of ${UPDATEFILE} successful." 
